@@ -109,11 +109,27 @@
             <p>© 2025 ИжевскАвтопрокат.</p>
         </div>
     </footer>
-<!-- Модальное окно входа администратора -->
+<!-- Модальное окно бронирования -->
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Бронирование автомобиля</h2>
+        <form id="bookingForm">
+            <input type="text" id="carModel" name="carModel" readonly>
+            <input type="text" placeholder="Ваше имя" required>
+            <input type="tel" placeholder="Ваш телефон" required>
+            <input type="email" placeholder="Ваш email" required>
+            <input type="date" required>
+            <button type="submit">Отправить заявку</button>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно администратора -->
 <div class="modal" id="adminLoginModal">
     <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>Вход для администратора</h2>
+        <h2>Авторизация</h2>
         <form id="adminLoginForm">
             <input type="password" id="adminPassword" placeholder="Пароль" required>
             <button type="submit">Войти</button>
@@ -121,33 +137,19 @@
     </div>
 </div>
 
-<!-- Модальное окно управления автомобилем -->
+<!-- Модальное окно редактирования автомобиля -->
 <div class="modal" id="carModal">
     <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>Управление автомобилем</h2>
+        <h2>Редактирование автомобиля</h2>
         <form id="carForm">
-            <input type="text" id="carName" placeholder="Название автомобиля" required>
-            <input type="number" id="carPrice" placeholder="Цена за сутки" required>
-            <input type="url" id="carImage" placeholder="Ссылка на фото" required>
+            <input type="text" id="carName" placeholder="Марка" required>
+            <input type="number" id="carPrice" placeholder="Цена" required>
+            <input type="text" id="carImage" placeholder="URL изображения" required>
             <button type="submit">Сохранить</button>
         </form>
     </div>
 </div>
-    <div class="modal" id="bookingModal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Бронирование автомобиля</h2>
-            <form id="bookingForm">
-                <input type="text" id="carModel" name="carModel" readonly>
-                <input type="text" placeholder="Ваше имя" required>
-                <input type="tel" placeholder="Ваш телефон" required>
-                <input type="email" placeholder="Ваш email" required>
-                <input type="date" required>
-                <button type="submit">Отправить заявку</button>
-            </form>
-        </div>
-    </div>
 
     <script src="javascript.js"></script>
 </body>
