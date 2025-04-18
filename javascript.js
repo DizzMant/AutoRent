@@ -4,60 +4,76 @@ document.addEventListener('DOMContentLoaded', function() {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
-            target.scrollIntoView({ behavior: 'smooth' });
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
         });
     });
 
-    // Модальное окно бронирования
-    const modal = document.getElementById('bookingModal');
-    const bookButtons = document.querySelectorAll('.book-button');
-
-    // Закрытие всех модальных окон
-    document.querySelectorAll('.modal .close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', () => {
-            closeBtn.closest('.modal').style.display = 'none';
-        });
-    });
-
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
-    });
-
-    bookButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const carModel = button.getAttribute('data-car');
-            document.getElementById('carModel').value = carModel;
-            modal.style.display = 'block';
-        });
-    });
-
-    // Обработка формы бронирования
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Заявка отправлена! Мы свяжемся с вами в ближайшее время.');
-        modal.style.display = 'none';
-        this.reset();
-    });
-
-    // Адаптивное меню
-    const menuToggle = document.createElement('div');
-    menuToggle.className = 'menu-toggle';
-    menuToggle.innerHTML = '☰';
-    document.querySelector('.navbar .container').appendChild(menuToggle);
-
-    menuToggle.addEventListener('click', () => {
-        const navLinks = document.querySelector('.nav-links');
-        navLinks.style.display = navLinks.style.display === 'block' ? 'none' : 'block';
-    });
-
-    // Админ-функционал
+    // Общие элементы
+    const bookingModal = document.getElementById('bookingModal');
     let cars = JSON.parse(localStorage.getItem('cars')) || [];
     const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
 
     // Инициализация начальных данных
     if (cars.length === 0) {
+        initializeDefaultCars();
+    }
+
+    // Делегирование событий
+    document.body.addEventListener('click', function(e) {
+        // Открытие бронирования
+        if (e.target.classList.contains('book-button')) {
+            handleBookingButtonClick(e.target);
+        }
+
+        // Закрытие модальных окон
+        if (e.target.classList.contains('close') || e.target.classList.contains('modal')) {
+            closeModal(e.target);
+        }
+
+        // Управление автомобилями
+        if (e.target.classList.contains('delete-button')) {
+            deleteCar(e.target.dataset.id);
+        }
+
+        if (e.target.classList.contains('edit-button')) {
+            editCar(e.target.dataset.id);
+        }
+
+        if (e.target.classList.contains('add-button')) {
+            showCarForm();
+        }
+    });
+
+    // Форма бронирования
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleBookingSubmit();
+    });
+
+    // Адаптивное меню
+    initMobileMenu();
+
+    // Админ-панель
+    initAdminPanel();
+
+    // Форма автомобиля
+    document.getElementById('carForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleCarFormSubmit();
+    });
+
+    // Авторизация администратора
+    document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleAdminLogin();
+    });
+
+    // Первоначальный рендер
+    renderCars();
+
+    // ===== ФУНКЦИИ ===== //
+
+    function initializeDefaultCars() {
         cars = [
             {
                 id: 1,
@@ -81,26 +97,53 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('cars', JSON.stringify(cars));
     }
 
-    // Админ-кнопка
-    const adminLink = document.createElement('a');
-    adminLink.href = '#';
-    adminLink.className = `admin-login ${isAdmin ? 'logout' : ''}`;
-    adminLink.textContent = isAdmin ? 'Выйти' : 'Админ';
-    document.querySelector('.navbar .container').appendChild(adminLink);
+    function handleBookingButtonClick(button) {
+        const carModel = button.dataset.car;
+        document.getElementById('carModel').value = carModel;
+        bookingModal.style.display = 'block';
+    }
 
-    // Обработчик кнопки админа/выхода
-    adminLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        if(isAdmin) {
-            sessionStorage.removeItem('isAdmin');
-            location.reload();
-        } else {
-            document.getElementById('adminLoginModal').style.display = 'block';
-        }
-    });
+    function handleBookingSubmit() {
+        alert('Заявка отправлена! Мы свяжемся с вами в ближайшее время.');
+        bookingModal.style.display = 'none';
+        this.reset();
+    }
 
-    // Рендер автомобилей
+    function closeModal(target) {
+        const modal = target.closest('.modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function initMobileMenu() {
+        const menuToggle = document.createElement('div');
+        menuToggle.className = 'menu-toggle';
+        menuToggle.innerHTML = '☰';
+        document.querySelector('.navbar .container').appendChild(menuToggle);
+
+        menuToggle.addEventListener('click', () => {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'block' ? 'none' : 'block';
+        });
+    }
+
+    function initAdminPanel() {
+        const adminLink = document.createElement('a');
+        adminLink.href = '#';
+        adminLink.className = `admin-login ${isAdmin ? 'logout' : ''}`;
+        adminLink.textContent = isAdmin ? 'Выйти' : 'Админ';
+        document.querySelector('.navbar .container').appendChild(adminLink);
+
+        adminLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(isAdmin) {
+                sessionStorage.removeItem('isAdmin');
+                location.reload();
+            } else {
+                document.getElementById('adminLoginModal').style.display = 'block';
+            }
+        });
+    }
+
     function renderCars() {
         const grid = document.querySelector('.cars-grid');
         grid.innerHTML = '';
@@ -129,20 +172,8 @@ document.addEventListener('DOMContentLoaded', function() {
             addCard.innerHTML = `<button class="add-button">+</button>`;
             grid.appendChild(addCard);
         }
-
-        // Навешиваем обработчики
-        document.querySelectorAll('.delete-button').forEach(btn => {
-            btn.addEventListener('click', () => deleteCar(btn.dataset.id));
-        });
-        
-        document.querySelectorAll('.edit-button').forEach(btn => {
-            btn.addEventListener('click', () => editCar(btn.dataset.id));
-        });
-        
-        document.querySelector('.add-button')?.addEventListener('click', showCarForm);
     }
 
-    // Управление автомобилями
     function deleteCar(id) {
         if(confirm('Удалить автомобиль?')) {
             cars = cars.filter(car => car.id !== Number(id));
@@ -168,10 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('carModal').style.display = 'block';
     }
 
-    // Обработка формы автомобиля
-    document.getElementById('carForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
+    function handleCarFormSubmit() {
         const newCar = {
             id: this.dataset.id ? Number(this.dataset.id) : Date.now(),
             name: document.getElementById('carName').value,
@@ -189,12 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('cars', JSON.stringify(cars));
         renderCars();
         document.getElementById('carModal').style.display = 'none';
-    });
+    }
 
-    // Авторизация администратора
-    document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
+    function handleAdminLogin() {
         if(document.getElementById('adminPassword').value === 'admin123') {
             sessionStorage.setItem('isAdmin', 'true');
             document.getElementById('adminLoginModal').style.display = 'none';
@@ -202,8 +227,5 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             alert('Неверный пароль!');
         }
-    });
-
-    // Первоначальный рендер
-    renderCars();
+    }
 });
